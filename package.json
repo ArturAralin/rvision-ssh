@@ -1,0 +1,30 @@
+{
+  "name": "rvision-ssh",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ArturAralin/rvision-ssh.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ArturAralin/rvision-ssh/issues"
+  },
+  "homepage": "https://github.com/ArturAralin/rvision-ssh#readme",
+  "devDependencies": {
+    "eslint": "^5.15.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.16.0"
+  },
+  "dependencies": {
+    "command-line-args": "^5.0.2",
+    "ramda": "^0.26.1",
+    "ssh2": "^0.8.2"
+  }
+}
