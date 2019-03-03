@@ -10,8 +10,8 @@ const {
   sftpGetHandlerRequest,
 } = require('./sftp');
 
-const SESSION_COMMANDS = `get() { echo "action=get&serverPath=$1&clientPath=$2" | netcat localhost 8888; } &>/dev/null
-`;
+const PORT = 8888;
+const SESSION_COMMANDS = `get() { echo "action=get&serverPath=$1&clientPath=$2" | netcat localhost ${PORT}; };put() { echo "action=put&serverPath=$2&clientPath=$1" | netcat localhost ${PORT}; } # hide_me\n`;
 
 const forwardInPort = (port, ssh) => new Promise((resolve, reject) => {
   ssh.forwardIn('127.0.0.1', port, (err) => {
@@ -25,8 +25,6 @@ const forwardInPort = (port, ssh) => new Promise((resolve, reject) => {
   });
 });
 
-
-// TODO: hide commands injection output
 const createFunctions = async (stream) => {
   stream.write(SESSION_COMMANDS);
 };
@@ -40,23 +38,17 @@ const handleRequest = pipe(
 );
 
 const fileServer = async (ssh) => {
-  const PORT = 8888;
   await forwardInPort(PORT, ssh);
   const sftp = await sftpConnect(ssh);
   const sftpHandler = sftpGetHandlerRequest(sftp);
 
   ssh
     .on('tcp connection', (info, accept) => {
-      let message;
       const stream = accept();
 
-      stream.on('data', (data) => {
-        const { msg } = sftpHandler(handleRequest(data));
-        message = msg;
-      });
-
-      stream.on('end', () => {
-        stream.end(message);
+      stream.on('data', async (data) => {
+        const { msg } = await sftpHandler(handleRequest(data));
+        stream.end(`${msg}\n`);
       });
     });
 };

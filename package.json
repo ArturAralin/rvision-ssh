@@ -25,6 +25,7 @@
   "dependencies": {
     "command-line-args": "^5.0.2",
     "ramda": "^0.26.1",
-    "ssh2": "^0.8.2"
+    "ssh2": "^0.8.2",
+    "stream-filter": "^2.1.0"
   }
 }

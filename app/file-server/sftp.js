@@ -39,8 +39,30 @@ const get = (sftp, serverPath, clientPath) => new Promise((resolve, reject) => {
     const ws = fs.createWriteStream(absoluteClientFileName);
     pt.pipe(ws);
 
-    ws.on('close', resolve);
+    ws.on('close', () => {
+      resolve({
+        msg: 'Successfully downloaded',
+      });
+    });
   });
+});
+
+const put = (sftp, serverPath, clientPath) => new Promise((resolve, reject) => {
+  const fileName = getFileName(clientPath);
+  const absoluteServerFileName = `${serverPath}/${fileName}`;
+
+  const rs = fs.createReadStream(clientPath);
+  const ws = sftp.createWriteStream(absoluteServerFileName);
+
+  rs.pipe(ws);
+
+  ws.on('close', () => {
+    resolve({
+      msg: 'Successfully uploaded',
+    });
+  });
+
+  ws.on('error', reject);
 });
 
 const sftpGetHandlerRequest = sftp => ({
@@ -51,6 +73,8 @@ const sftpGetHandlerRequest = sftp => ({
   switch (action) {
     case 'get':
       return get(sftp, serverPath, clientPath);
+    case 'put':
+      return put(sftp, serverPath, clientPath);
     default:
       return Promise.resolve({
         msg: 'Unknown action',
