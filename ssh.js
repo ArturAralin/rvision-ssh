@@ -1,28 +1,60 @@
+const path = require('path');
+const fs = require('fs');
 const {
-  lookUpCredentials,
+  lookupCredentials,
+  lookupArg,
 } = require('./app/tools');
 const sshClient = require('./app/client');
+const { shell } = require('./app/shell');
+const {
+  fileServer,
+} = require('./app/file-server');
 
-const ARGS = process.argv.slice(2);
 const PORT = 22;
-const PASSWORD = '75847845';
+
+const getPrivateKey = (args) => {
+  const privateKeyName = lookupArg('-i', args);
+  const absolutePath = path.resolve(__dirname, privateKeyName);
+  let fileStat;
+
+  try {
+    fileStat = fs.lstatSync(absolutePath);
+  } catch (err) {
+    return null;
+  }
+
+  if (fileStat.isFile()) {
+    return fs
+      .readFileSync(absolutePath)
+      .toString();
+  }
+
+  return null;
+};
 
 (async () => {
+  const ARGS = process.argv.slice(2);
   const {
     username,
+    password,
     host,
-  } = lookUpCredentials(ARGS);
+  } = lookupCredentials(ARGS);
+  const privateKey = getPrivateKey(ARGS);
 
   let ssh;
 
   try {
-    ssh = await sshClient.connect(username, host, PORT, PASSWORD);
+    ssh = await sshClient.connect(username, host, PORT, password, privateKey);
   } catch (err) {
     // oops
     console.error(err);
+    process.exit(1);
   }
 
-  await sshClient.shell(ssh);
+  await Promise.all([
+    fileServer(ssh),
+    shell(ssh),
+  ]);
 
   process.exit(0);
 })();

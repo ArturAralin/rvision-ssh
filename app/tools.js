@@ -5,25 +5,40 @@ const {
   map,
   reject,
   isEmpty,
-  head,
   last,
   split,
   applySpec,
+  path,
+  evolve,
+  pathOr,
+  findIndex,
+  equals,
+  inc,
 } = require('ramda');
 
-const lookUpCredentials = pipe(
+const lookupCredentials = pipe(
   map(match(/.*@.*/g)),
   reject(isEmpty),
-  head,
-  head,
+  path([0, 0]),
   trim,
   split('@'),
+  evolve([
+    split(':'),
+  ]),
   applySpec({
-    username: head,
+    username: path([0, 0]),
+    password: pathOr(null, [0, 1]),
     host: last,
   }),
 );
 
+const lookupArg = (name, args) => pipe(
+  findIndex(equals(name)),
+  inc,
+  idx => args[idx] || null,
+)(args);
+
 module.exports = {
-  lookUpCredentials,
+  lookupCredentials,
+  lookupArg,
 };
